@@ -2,6 +2,7 @@
 Fast AGI service to lookup callerids in the tellows database
 """
 import datetime
+import os
 import socketserver
 import sys
 
@@ -9,15 +10,35 @@ import requests
 import yaml
 from asterisk.agi import AGI
 
-with open("config.yaml", 'r') as stream:
-    try:
-        config = yaml.safe_load(stream)
-    except yaml.YAMLError as exc:
-        print("Error opening config.yaml")
-        print(exc)
+config = {}
+
+config["apikeyMd5"] = os.environ.get("APIKEYMD5")
+config["host"] = os.environ.get("HOST")
+config["port"] = os.environ.get("PORT")
+config["timeout"] = os.environ.get("TIMEOUT")
+
+if config["apikeyMd5"] is not None \
+        and config["host"] is not None \
+        and config["port"] is not None \
+        and config["timeout"] is not None:
+
+    print("Got configuration from environment")
+    print(config)
+
+else:
+    print("Loading config file config.yaml")
+    with open("config.yaml", 'r') as stream:
+        try:
+            config = yaml.safe_load(stream)
+            print("Got configuration from config.yaml")
+            print(config)
+        except yaml.YAMLError as exc:
+            print("Error opening config.yaml")
+            print(exc)
 
 if not config["apikeyMd5"] or not config["host"] or not config["port"] or not config["timeout"]:
-    print("Missing config option(s)")
+    print(config)
+    print("Missing config option(s). Exiting.")
     sys.exit(-1)
 
 
@@ -26,7 +47,7 @@ class FastAGI(socketserver.StreamRequestHandler):
     FastAGI request handler for socketserver
     """
     # Close connections not finished in 5seconds.
-    timeout = config["timeout"]
+    timeout = int(config["timeout"])
 
     def handle(self):
         try:
@@ -35,13 +56,13 @@ class FastAGI(socketserver.StreamRequestHandler):
             if callerid != "anonymous":
                 # https://www.tellows.de/apidoc/#api-Live_Number_API
                 agi_request = requests.request(url="https://www.tellows.de/basic/num/%s" % callerid,
-                                           method="GET",
-                                           params={
-                                               "json": 1
-                                           },
-                                           headers={
-                                               "X-Auth-Token": config["apikeyMd5"]
-                                           })
+                                               method="GET",
+                                               params={
+                                                   "json": 1
+                                               },
+                                               headers={
+                                                   "X-Auth-Token": config["apikeyMd5"]
+                                               })
                 if agi_request.status_code == 200:
                     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
                     print(callerid, end=", ")
@@ -99,7 +120,7 @@ if __name__ == "__main__":
         sys.exit(-2)
 
     # Create socketServer
-    server = socketserver.ForkingTCPServer((config["host"], config["port"]), FastAGI)
+    server = socketserver.ForkingTCPServer((config["host"], int(config["port"])), FastAGI)
     print("Starting FastAGI server on " + config["host"] + ":" + str(config["port"]))
 
     # Keep server running until CTRL-C is pressed.
