@@ -10,19 +10,17 @@ import requests
 import yaml
 from asterisk.agi import AGI
 
-config = {}
-
-config["apikeyMd5"] = os.environ.get("APIKEYMD5")
-config["host"] = os.environ.get("HOST")
-config["port"] = os.environ.get("PORT")
-config["timeout"] = os.environ.get("TIMEOUT")
+config = {"apikeyMd5": os.environ.get("APIKEYMD5"),
+          "host": os.environ.get("HOST"),
+          "port": os.environ.get("PORT"),
+          "timeout": os.environ.get("TIMEOUT")}
 
 if config["apikeyMd5"] is not None \
         and config["host"] is not None \
         and config["port"] is not None \
         and config["timeout"] is not None:
 
-    print("Got configuration from environment")
+    print("Got configuration from environment", end=": ")
     print(config)
 
 else:
@@ -30,7 +28,7 @@ else:
     with open("config.yaml", 'r') as stream:
         try:
             config = yaml.safe_load(stream)
-            print("Got configuration from config.yaml")
+            print("Got configuration from config.yaml", end=": ")
             print(config)
         except yaml.YAMLError as exc:
             print("Error opening config.yaml")

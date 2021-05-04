@@ -2,7 +2,7 @@
 
 Fast-AGI service built with Python to use the
 [Tellows Blacklist API Service](https://www.tellows.de/c/about-tellows-uk/tellows-api-partnership-program/)
-within Asterik
+within Asterisk.
 
 ## Installation
 ### Using docker
