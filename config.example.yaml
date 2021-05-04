@@ -1,0 +1,6 @@
+# Configuratio for Tellows FastAGI-Server
+
+apikeyMd5: "<MD5-API-Key as purchased via the shop - see the PDF you received>"
+host: "127.0.0.1"  # IP the FastAGI-Server ist listening on, change it to 0.0.0.0 if you want network access
+port: 4573  # Port the FastAGI-Server ist listening on - default is 4573 (Asterisk FastAGI Protocol)
+timeout: 2  # Connection timeout for fastAGI requests in seconds
