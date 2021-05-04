@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  asterisk-fastagi-tellows:
+    image: vkettenbach/asterisk-fastagi-tellows:latest
+    container_name: asterisk-fastagi-tellows
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      APIKEYMD5: "<your api key as md5 hash>"
+      HOST: "0.0.0.0"
+      PORT: 4573
+      TIMEOUT: 2

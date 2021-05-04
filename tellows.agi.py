@@ -25,14 +25,18 @@ if config["apikeyMd5"] is not None \
 
 else:
     print("Loading config file config.yaml")
-    with open("config.yaml", 'r') as stream:
-        try:
-            config = yaml.safe_load(stream)
-            print("Got configuration from config.yaml", end=": ")
-            print(config)
-        except yaml.YAMLError as exc:
-            print("Error opening config.yaml")
-            print(exc)
+    try:
+        with open("config.yaml", 'r') as stream:
+            try:
+                config = yaml.safe_load(stream)
+                print("Got configuration from config.yaml", end=": ")
+                print(config)
+            except yaml.YAMLError as exc:
+                print("Error opening config.yaml")
+                print(exc)
+    except FileNotFoundError:
+        print("config.yaml not found and environment not set. Can't continue. Exiting.")
+        sys.exit(-1)
 
 if not config["apikeyMd5"] or not config["host"] or not config["port"] or not config["timeout"]:
     print(config)

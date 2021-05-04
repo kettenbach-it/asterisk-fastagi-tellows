@@ -89,3 +89,6 @@ fabric.properties
 
 .idea
 config.yaml
+config.yaml.bak
+.envrc
+docker-compose.yml
