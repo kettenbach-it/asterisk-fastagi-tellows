@@ -11,3 +11,5 @@ services:
       HOST: "0.0.0.0"
       PORT: 4573
       TIMEOUT: 2
+      REDIS_HOST: <REDIS-HOSTNAME>
+      REDIS_PORT: <REDIS-PORT>

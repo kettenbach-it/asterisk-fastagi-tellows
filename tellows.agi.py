@@ -6,14 +6,19 @@ import os
 import socketserver
 import sys
 
+import phonenumbers
 import requests
 import yaml
 from asterisk.agi import AGI
+import redis
 
 config = {"apikeyMd5": os.environ.get("APIKEYMD5"),
           "host": os.environ.get("HOST"),
           "port": os.environ.get("PORT"),
-          "timeout": os.environ.get("TIMEOUT")}
+          "timeout": os.environ.get("TIMEOUT"),
+          "redis_host": os.environ.get("REDIS_HOST", None),
+          "redis_port": int(os.environ.get("REDIS_PORT", None)),
+          }
 
 if config["apikeyMd5"] is not None \
         and config["host"] is not None \
@@ -55,7 +60,28 @@ class FastAGI(socketserver.StreamRequestHandler):
         try:
             agi = AGI(stdin=self.rfile, stdout=self.wfile, stderr=sys.stderr)
             callerid = agi.env["agi_callerid"]
+            print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
+            print(f"Checking caller: {callerid}")
             if callerid != "anonymous":
+                # Check if the number is in redis, if yes => whitelisted
+                if config["redis_host"] and config["redis_port"]:
+                    e164 = phonenumbers.parse(callerid, "DE")
+                    fullnumber = "+" + str(e164.country_code) + str(e164.national_number)
+                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
+                    print(f"Checking if {fullnumber} is listed in Redis "
+                          f"on {config['redis_host']}:{config['redis_port']}")
+                    redis_client = redis.Redis(host=config["redis_host"], port=config["redis_port"])
+                    result = redis_client.get(fullnumber)
+                    if result:
+                        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
+                        print(f"{fullnumber} found in Redis. Not checking tellows!")
+                        self.wfile.write(b"SET VARIABLE TELLOWS_SCORE 1\n")
+                        return
+                    else:
+                        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
+                        print(f"{fullnumber} not found in Redis. Checking tellows!")
+
+                # Check if the number is in tellows:
                 # https://www.tellows.de/apidoc/#api-Live_Number_API
                 agi_request = requests.request(url="https://www.tellows.de/basic/num/%s" % callerid,
                                                method="GET",
@@ -67,7 +93,7 @@ class FastAGI(socketserver.StreamRequestHandler):
                                                })
                 if agi_request.status_code == 200:
                     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
-                    print(callerid, end=", ")
+                    print("Response from tellows: ", end=" ")
                     print("Numb.: " + agi_request.json()["tellows"]["number"], end=", ")
                     print("Norm.Numb.: " + agi_request.json()["tellows"]["normalizedNumber"],
                           end=", ")
@@ -77,7 +103,7 @@ class FastAGI(socketserver.StreamRequestHandler):
 
                     # agi.set_variable("TELLOWS_SCORE", request.json()["tellows"]["score"])
                     # agi.set_variable seems to be broken, so we write to stdout instead:
-                    self.wfile.write(b"SET VARIABLE TELLOWS_SCORE %d" %
+                    self.wfile.write(b"SET VARIABLE TELLOWS_SCORE %d\n" %
                                      int(agi_request.json()["tellows"]["score"]))
 
         except TypeError as exception:

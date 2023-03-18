@@ -31,6 +31,9 @@ services:
       HOST: "0.0.0.0"  # Listen on all interfaces
       PORT: 4573  # Listen on asterisk agi port
       TIMEOUT: 2  # Timeout 
+      REDIS_HOST: localhost  # Redis host to lookup whitelist at
+      REDIS_PORT: 6379  # Redis port to lookup whitelist at
+
 ```
 
 ### Not using docker
