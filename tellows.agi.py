@@ -88,9 +88,12 @@ class FastAGI(socketserver.StreamRequestHandler):
                                                params={
                                                    "json": 1
                                                },
-                                               headers={
-                                                   "X-Auth-Token": config["apikeyMd5"]
-                                               })
+                                               #headers={
+                                               #    "X-Auth-Token": config["apikeyMd5"]
+                                               #}
+                                               )
+                #print(agi_request.url)
+                #print(agi_request.headers)
                 if agi_request.status_code == 200:
                     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
                     print("Response from tellows: ", end=" ")
