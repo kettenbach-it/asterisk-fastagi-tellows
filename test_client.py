@@ -15,7 +15,7 @@ async def test_request():
         'agi_callington': '0',
         'agi_channel': 'PJSIP/sipgate_trunk-00000145',
         'agi_context': 'subCheckBlacklist',
-        'agi_dnid': '49611945864970',
+        'agi_dnid': '123456789',
         'agi_enhanced': '0.0',
         'agi_extension': 's',
         'agi_language': 'en',
@@ -25,7 +25,7 @@ async def test_request():
         'agi_request': 'agi://localhost/',
         'agi_threadid': '139737013024512',
         'agi_type': 'PJSIP',
-        'agi_uniqueid': 'asterisk.kettenbach-it.de-1719409791.550',
+        'agi_uniqueid': 'asterisk-1719409791.550',
         'agi_version': 'certified-18.9-cert8'
     }
     async with AGIClientSession(headers=headers) as session:
