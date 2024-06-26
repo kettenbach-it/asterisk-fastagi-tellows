@@ -2,6 +2,7 @@
 Fast AGI service to lookup callerids in the tellows database
 """
 import datetime
+import json
 import os
 import socketserver
 import sys
@@ -94,20 +95,22 @@ class FastAGI(socketserver.StreamRequestHandler):
                                                )
                 #print(agi_request.url)
                 #print(agi_request.headers)
+                #print(agi_request.text)
+                reply = json.loads(agi_request.text.replace("Partner Data not correct", ""))
                 if agi_request.status_code == 200:
                     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
                     print("Response from tellows: ", end=" ")
-                    print("Numb.: " + agi_request.json()["tellows"]["number"], end=", ")
-                    print("Norm.Numb.: " + agi_request.json()["tellows"]["normalizedNumber"],
+                    print("Numb.: " + reply["tellows"]["number"], end=", ")
+                    print("Norm.Numb.: " + reply["tellows"]["normalizedNumber"],
                           end=", ")
-                    print("Score: " + agi_request.json()["tellows"]["score"], end=", ")
-                    print("Searches: " + agi_request.json()["tellows"]["searches"], end=", ")
-                    print("Comments: " + agi_request.json()["tellows"]["comments"], end=", ")
+                    print("Score: " + reply["tellows"]["score"], end=", ")
+                    print("Searches: " + reply["tellows"]["searches"], end=", ")
+                    print("Comments: " + reply["tellows"]["comments"], end=", ")
 
                     # agi.set_variable("TELLOWS_SCORE", request.json()["tellows"]["score"])
                     # agi.set_variable seems to be broken, so we write to stdout instead:
                     self.wfile.write(b"SET VARIABLE TELLOWS_SCORE %d\n" %
-                                     int(agi_request.json()["tellows"]["score"]))
+                                     int(reply["tellows"]["score"]))
 
         except TypeError as exception:
             sys.stderr.write('Unable to connect to agi://{} {}\n'.
@@ -118,9 +121,9 @@ class FastAGI(socketserver.StreamRequestHandler):
         except socketserver.socket.error as exception:
             sys.stderr.write('Could not open the socket. '
                              'Is someting else listening on this port?\n')
-        except Exception as exception:  # pylint: disable=broad-except
-            sys.stderr.write('An unknown error: {}\n'.
-                             format(str(exception)))
+        # except Exception as exception:  # pylint: disable=broad-except
+        #     sys.stderr.write('An unknown error: {}\n'.
+        #                      format(str(exception)))
 
 
 if __name__ == "__main__":
