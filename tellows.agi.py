@@ -25,10 +25,8 @@ if config["apikeyMd5"] is not None \
         and config["host"] is not None \
         and config["port"] is not None \
         and config["timeout"] is not None:
-
     print("Got configuration from environment", end=": ")
     print(config)
-
 else:
     print("Loading config file config.yaml")
     try:
@@ -81,7 +79,6 @@ class FastAGI(socketserver.StreamRequestHandler):
                     else:
                         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
                         print(f"{fullnumber} not found in Redis. Checking tellows!")
-
                 # Check if the number is in tellows:
                 # https://www.tellows.de/apidoc/#api-Live_Number_API
                 agi_request = requests.request(url="https://www.tellows.de/basic/num/%s" % callerid,
@@ -89,29 +86,27 @@ class FastAGI(socketserver.StreamRequestHandler):
                                                params={
                                                    "json": 1
                                                },
-                                               #headers={
-                                               #    "X-Auth-Token": config["apikeyMd5"]
-                                               #}
+                                               # headers={
+                                               #     "X-Auth-Token": config["apikeyMd5"]
+                                               # }
                                                )
-                #print(agi_request.url)
-                #print(agi_request.headers)
-                #print(agi_request.text)
+                # print(agi_request.url)
+                # print(agi_request.headers)
+                # print(agi_request.text)
                 reply = json.loads(agi_request.text.replace("Partner Data not correct", ""))
                 if agi_request.status_code == 200:
                     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), end=": ")
                     print("Response from tellows: ", end=" ")
-                    print("Numb.: " + reply["tellows"]["number"], end=", ")
-                    print("Norm.Numb.: " + reply["tellows"]["normalizedNumber"],
+                    print("Numb.: " + str(reply["tellows"]["number"]), end=", ")
+                    print("Norm.Numb.: " + str(reply["tellows"]["normalizedNumber"]),
                           end=", ")
-                    print("Score: " + reply["tellows"]["score"], end=", ")
-                    print("Searches: " + reply["tellows"]["searches"], end=", ")
-                    print("Comments: " + reply["tellows"]["comments"], end=", ")
-
+                    print("Score: " + str(reply["tellows"]["score"]), end=", ")
+                    print("Searches: " + str(reply["tellows"]["searches"]), end=", ")
+                    print("Comments: " + str(reply["tellows"]["comments"]), end=", ")
                     # agi.set_variable("TELLOWS_SCORE", request.json()["tellows"]["score"])
                     # agi.set_variable seems to be broken, so we write to stdout instead:
                     self.wfile.write(b"SET VARIABLE TELLOWS_SCORE %d\n" %
                                      int(reply["tellows"]["score"]))
-
         except TypeError as exception:
             sys.stderr.write('Unable to connect to agi://{} {}\n'.
                              format(self.client_address[0], str(exception)))
@@ -134,18 +129,18 @@ if __name__ == "__main__":
                                headers={
                                    "X-Auth-Token": config["apikeyMd5"]
                                })
-
     if request.status_code == 200:
+        partnerinfo = request.json()["partnerinfo"]
         print("Successfully connected to tellows-api", end=": ")
-        print(request.json()["partnerinfo"]["info"], end="")
+        print(partnerinfo["info"], end="")
         try:
-            print(" | Company: " + request.json()["partnerinfo"]["company"], end="")
+            print(" | Company: " + str(partnerinfo["company"]), end="")
         except KeyError:
             pass
-        print(" | Allowscorelist: " + request.json()["partnerinfo"]["allowscorelist"], end="")
-        print(" | Premium: " + request.json()["partnerinfo"]["premium"], end="")
-        print(" | Valid until: " + request.json()["partnerinfo"]["validuntil"], end="")
-        print(" | Requests: " + request.json()["partnerinfo"]["requests"], end="")
+        print(" | Allowscorelist: " + str(partnerinfo.get("allowscorelist")), end="")
+        print(" | Premium: " + str(partnerinfo.get("premium")), end="")
+        print(" | Valid until: " + str(partnerinfo.get("validuntil")), end="")
+        print(" | Requests: " + str(partnerinfo.get("requests")), end="")
         print()
     else:
         print("Error connecting to tellows-api: " + str(request.status_code)
@@ -156,6 +151,5 @@ if __name__ == "__main__":
     # Create socketServer
     server = socketserver.ForkingTCPServer((config["host"], int(config["port"])), FastAGI)
     print("Starting FastAGI server on " + config["host"] + ":" + str(config["port"]))
-
     # Keep server running until CTRL-C is pressed.
     server.serve_forever()
