@@ -142,10 +142,10 @@ if __name__ == "__main__":
             print(" | Company: " + request.json()["partnerinfo"]["company"], end="")
         except KeyError:
             pass
-        print(" | Allowscorelist: " + request.json()["partnerinfo"]["allowscorelist"], end="")
-        print(" | Premium: " + request.json()["partnerinfo"]["premium"], end="")
-        print(" | Valid until: " + request.json()["partnerinfo"]["validuntil"], end="")
-        print(" | Requests: " + request.json()["partnerinfo"]["requests"], end="")
+        print(" | Allowscorelist: " + str(request.json()["partnerinfo"]["allowscorelist"]), end="")
+        print(" | Premium: " + str(request.json()["partnerinfo"]["premium"]), end="")
+        print(" | Valid until: " + str(request.json()["partnerinfo"]["validuntil"]), end="")
+        print(" | Requests: " + str(request.json()["partnerinfo"]["requests"]), end="")
         print()
     else:
         print("Error connecting to tellows-api: " + str(request.status_code)
